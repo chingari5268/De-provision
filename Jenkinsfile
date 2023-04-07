@@ -6,8 +6,8 @@ pipeline {
     }
 
   environment {
-       AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
-       ACCESS_SECRET_ACCESS_KEY = credentials('ACCESS_SECRET_ACCESS_KEY')
+       AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+       AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
        AWS_DEFAULT_REGION = 'us-east-1'
   }
 
@@ -19,10 +19,12 @@ pipeline {
         }
     stage('Terraform Destroy') {
       steps {
-        script {
-          sh 'terraform init'
-          sh 'terraform destroy -auto-approve'
-        }
+        input 'Do you want to delete the resource?'
+          script {
+            dir('terraform') {
+            sh 'terraform destroy -target=aws_s3_bucket.myagencya-bucket1 -auto-approve'
+          }
+            sh 'aws s3 rm s3://myagencya-bucket1 --recursive'
       }
     }
   }
