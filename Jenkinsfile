@@ -12,11 +12,17 @@ pipeline {
   }
 
   stages {
+    stage('Checkout') {
+      steps {
+         git branch: 'main' , url:'https://github.com/chingari5268/Terraformcheck.git'
+      }
+    }
+
     stage('Terraform Destroy') {
       steps {
         sh 'terraform destroy -target=aws_s3_bucket.myagencya-bucket1 -auto-approve'
       }
-        sh 'aws s3 rm s3://myagencya-bucket1 --recursive'
+      sh 'aws s3 rm s3://myagencya-bucket1 --recursive'
     }
-  }
+  }	
 }
