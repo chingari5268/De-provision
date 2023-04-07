@@ -14,7 +14,7 @@ pipeline {
   stages {
     stage('Checkout') {
             steps {
-               git branch: 'main' , url:'https://github.com/chingari5268/De-provision.git'
+               git branch: 'main' , url:'https://github.com/chingari5268/Terraformcheck.git'
             }
         }
     stage('Terraform Destroy') {
