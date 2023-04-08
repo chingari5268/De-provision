@@ -58,7 +58,7 @@ pipeline {
             message: 'Enter the name of the agency:',
             parameters: [string(name: 'AgencyName')]
           )
-          sh "terraform plan -var 'agencies=[\$agencyName\]' -out=tfplan"
+          sh "terraform plan -var 'agencies=[$agencyName]' -out=tfplan"
         }
       }
     }
