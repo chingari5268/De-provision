@@ -8,7 +8,7 @@ pipeline {
   environment {
     AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
-    AWS_DEFAULT_REGION = 'us-east-1'
+    AWS_DEFAULT_REGION = 'eu-west-1'
   }
 
   stages {
@@ -18,21 +18,33 @@ pipeline {
       }
     }
 
-    stage('Terraform Workspace') {
+    stage('Create or Destroy Workspace') {
       steps {
         script {
-          def workspaceName = input(
-            message: 'Enter the name of the Terraform workspace:',
-            parameters: [string(name: 'WorkspaceName', defaultValue: 'default')]
+          def destroy = input(
+            message: 'Do you want to create or destroy the Terraform workspace? (create/destroy)',
+            parameters: [string(name: 'Destroy', defaultValue: 'create')]
           )
 
-          // Create or select the Terraform workspace
-          sh "terraform workspace new $workspaceName || terraform workspace select $workspaceName"
+          if (destroy == 'create') {
+            def agencyName = input(
+              message: 'Enter the name of the agency for the Terraform workspace:',
+              parameters: [string(name: 'AgencyName', defaultValue: 'default')]
+            )
+            sh "terraform workspace new $agencyName"
+          } else {
+            def agencyName = input(
+              message: 'Enter the name of the agency for the Terraform workspace:',
+              parameters: [string(name: 'AgencyName', defaultValue: 'default')]
+            )
+            sh "terraform workspace select $agencyName"
+            sh 'terraform destroy -auto-approve'
+          }
         }
       }
     }
-    
-	stage('Terraform Init') {
+
+    stage('Terraform Init') {
       steps {
         sh 'terraform init'
       }
@@ -44,32 +56,9 @@ pipeline {
       }
     }
 
-    stage('Terraform apply') {
+    stage('Terraform Apply') {
       steps {
-        def agencyName = input(
-          message: 'Enter the name of the agency:',
-          parameters: [string(name: 'AgencyName')]
-        )
-
-        // Set the agency name as a Terraform variable
-        sh "terraform apply -var 'agencies=[\"${agencyName}\"]' -auto-approve"
-      }
-    }
-
-    stage('Destroy Workspace') {
-      steps {
-        script {
-          def destroy = input(
-            message: 'Do you want to destroy the Terraform workspace? (yes/no)',
-            parameters: [string(name: 'Destroy', defaultValue: 'no')]
-          )
-
-          if (destroy == 'yes') {
-            sh 'terraform destroy -auto-approve'
-          } else {
-            echo 'Not destroying Terraform workspace.'
-          }
-        }
+        sh 'terraform apply -auto-approve'
       }
     }
   }
