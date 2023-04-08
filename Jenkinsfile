@@ -81,7 +81,7 @@ pipeline {
               message: 'Enter the name of the agency:',
               parameters: [string(name: 'AgencyName')]
             )
-            sh "terraform destroy -auto-approve -var 'agencies=$agencyName' -var 'force_destroy=true'"
+            sh "terraform destroy -auto-approve -var 'agencies=$agencyName'"
           } else {
             echo 'Not destroying resources.'
           }
