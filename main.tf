@@ -4,7 +4,7 @@ provider "aws" {
 
 # Define the agency names
 variable "agencies" {
-  type    = list(string)
+  type    = string
 }
 
 resource "aws_s3_bucket" "my_bucket" {
