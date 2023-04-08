@@ -1,3 +1,5 @@
+combine the above response jenkins file with the below jenkins file to decommission $agency from state file
+
 pipeline {
   agent any
   
@@ -81,8 +83,7 @@ pipeline {
               message: 'Enter the name of the agency:',
               parameters: [string(name: 'AgencyName')]
             )
-            sh "terraform destroy -auto-approve -var 'agencies=$agencyName'"
-            sh "terraform workspace delete $workspaceName"
+            sh "terraform destroy -auto-approve -var 'agencies=$agencyName' force_destroy=true'"
           } else {
             echo 'Not destroying resources.'
           }
