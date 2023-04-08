@@ -14,7 +14,6 @@ resource "aws_s3_bucket" "my_bucket" {
     Name        = "My Example Bucket"
     Environment = "Production"
   }
-  force_destroy = true
 }
 
 # Set the ACL for the S3 bucket
