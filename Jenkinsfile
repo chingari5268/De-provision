@@ -8,7 +8,7 @@ pipeline {
   environment {
     AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
-    AWS_DEFAULT_REGION = 'eu-west-1'
+    AWS_DEFAULT_REGION = 'us-east-1'
   }
 
   stages {
@@ -53,19 +53,17 @@ pipeline {
     
     stage('Terraform Plan') {
       steps {
-        sh 'terraform plan -out=tfplan'
+        def agencyName = input(
+          message: 'Enter the name of the agency:',
+          parameters: [string(name: 'AgencyName')]
+        )
+        sh "terraform plan -var 'agencies=[\"$agencyName\"]' -out=tfplan"
       }
     }
     
     stage('Terraform Apply') {
       steps {
-        script {
-          def agencyName = input(
-            message: 'Enter the name of the agency:',
-            parameters: [string(name: 'AgencyName')]
-          )
-          sh "terraform apply -auto-approve -var 'agency_name=$agencyName'"
-        }
+        sh 'terraform apply -auto-approve tfplan'
       }
     }
     
@@ -73,11 +71,11 @@ pipeline {
       steps {
         script {
           def destroy = input(
-            message: 'Destroy the resources of the agency? (yes/no)',
-            parameters: [string(name: 'AgencyName', defaultValue: 'no')]
+            message: 'Do you want to destroy the resources? (yes/no)',
+            parameters: [string(name: 'Destroy', defaultValue: 'no')]
           )
           if (destroy == 'yes') {
-            sh "terraform destroy -auto-approve -var 'agency_name=$agencyName'"
+            sh 'terraform destroy -auto-approve'
           } else {
             echo 'Not destroying resources.'
           }
