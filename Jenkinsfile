@@ -1,10 +1,10 @@
 pipeline {
   agent any
-
+  
   tools {
-    terraform 'Jenkins-terraform'
+        terraform 'Jenkins-terraform'
   }
-
+   
   environment {
     AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
@@ -14,51 +14,74 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        git branch: 'main', url: 'https://github.com/chingari5268/De-provision.git'
+         git branch: 'main' , url:'https://github.com/chingari5268/De-provision.git'
       }
     }
-
-    stage('Create or Destroy Workspace') {
+  
+    stage('Workspace') {
       steps {
         script {
-          def destroy = input(
-            message: 'Do you want to create or destroy the Terraform workspace? (create/destroy)',
-            parameters: [string(name: 'Destroy', defaultValue: 'create')]
+          def workspaceAction = input(
+            message: 'Do you want to create or destroy a Terraform workspace? (create/destroy)',
+            parameters: [string(name: 'WorkspaceAction', defaultValue: 'create')]
           )
-
-          if (destroy == 'create') {
-            def agencyName = input(
-              message: 'Enter the name of the agency for the Terraform workspace:',
-              parameters: [string(name: 'AgencyName', defaultValue: 'default')]
+          if (workspaceAction == 'create') {
+            def workspaceName = input(
+              message: 'Enter the name of the Terraform workspace:',
+              parameters: [string(name: 'WorkspaceName', defaultValue: 'default')]
             )
-            sh "terraform workspace new $agencyName"
+            sh "terraform workspace new $workspaceName"
+          } else if (workspaceAction == 'destroy') {
+            def workspaceName = input(
+              message: 'Enter the name of the Terraform workspace you want to destroy:',
+              parameters: [string(name: 'WorkspaceName')]
+            )
+            sh "terraform workspace select $workspaceName"
+            sh "terraform workspace delete $workspaceName"
           } else {
-            def agencyName = input(
-              message: 'Enter the name of the agency for the Terraform workspace:',
-              parameters: [string(name: 'AgencyName', defaultValue: 'default')]
-            )
-            sh "terraform workspace select $agencyName"
-            sh 'terraform destroy -auto-approve'
+            error("Invalid workspace action: $workspaceAction")
           }
         }
       }
     }
-
+  
     stage('Terraform Init') {
       steps {
         sh 'terraform init'
       }
     }
-
+    
     stage('Terraform Plan') {
       steps {
         sh 'terraform plan -out=tfplan'
       }
     }
-
+    
     stage('Terraform Apply') {
       steps {
-        sh 'terraform apply -auto-approve'
+        script {
+          def agencyName = input(
+            message: 'Enter the name of the agency:',
+            parameters: [string(name: 'AgencyName')]
+          )
+          sh "terraform apply -auto-approve -var 'agency_name=$agencyName'"
+        }
+      }
+    }
+    
+    stage('Terraform Destroy') {
+      steps {
+        script {
+          def destroy = input(
+            message: 'message: 'Destroy the resources of the agency? (yes/no)',
+            parameters: [string(name: 'AgencyName', defaultValue: 'no')]
+          )
+          if (destroy == 'yes') {
+            sh "terraform destroy -auto-approve -var 'agency_name=$agencyName'"
+          } else {
+            echo 'Not destroying resources.'
+          }
+        }
       }
     }
   }
