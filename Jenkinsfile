@@ -2,7 +2,7 @@ pipeline {
   agent any
   
   tools {
-        terraform 'Jenkins-terraform'
+    terraform 'Jenkins-terraform'
   }
    
   environment {
@@ -14,7 +14,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-         git branch: 'main' , url:'https://github.com/chingari5268/De-provision.git'
+        git branch: 'main', url: 'https://github.com/chingari5268/De-provision.git'
       }
     }
   
@@ -74,10 +74,14 @@ pipeline {
         script {
           def destroy = input(
             message: 'Do you want to destroy the resources? (yes/no)',
-            parameters: [string(name: 'Destroy', defaultValue: 'no')]
+            parameters: [string(name: 'Destroy', defaultValue: 'no')],
           )
           if (destroy == 'yes') {
-            sh 'terraform destroy -auto-approve'
+            def agencyName = input(
+              message: 'Enter the name of the agency:',
+              parameters: [string(name: 'AgencyName')]
+            )
+            sh "terraform destroy -auto-approve -var 'agencies=$agencyName'"
           } else {
             echo 'Not destroying resources.'
           }
