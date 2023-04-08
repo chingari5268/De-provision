@@ -1,5 +1,3 @@
-combine the above response jenkins file with the below jenkins file to decommission $agency from state file
-
 pipeline {
   agent any
   
