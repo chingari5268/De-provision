@@ -73,7 +73,7 @@ pipeline {
       steps {
         script {
           def destroy = input(
-            message: 'message: 'Destroy the resources of the agency? (yes/no)',
+            message: 'Destroy the resources of the agency? (yes/no)',
             parameters: [string(name: 'AgencyName', defaultValue: 'no')]
           )
           if (destroy == 'yes') {
